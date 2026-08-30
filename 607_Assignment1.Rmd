@@ -1,0 +1,18 @@
+---
+title: "Student Performance Data"
+author: "Zaina Hassan"
+date: "2026-08-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Overview
+
+This analysis uses the Student Performance dataset from the UCI Machine Learning Repository, which contains information about students’ academic performance as well as demographic, social, and school-related factors. I chose this dataset because I am interested in exploring how different aspects of a student’s life may relate to their academic performance. For this assignment, I will focus on creating a smaller and more understandable dataset containing variables that may be useful for examining student performance.The original dataset is available through the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/320/student+performance) 
+
+#Approach 
+
+I plan to load the Student Performance data set into R and examine its structure and variables. I will select a subset of variables that may be useful for understanding student academic performance, including the final grade as the target variable. I will then rename unclear or abbreviated columns and transform coded values where necessary so that the resulting data frame is easier to understand and use for future analysis. One challenge I anticipate is determining which variables are most relevant to include while making sure that any coded values are interpreted correctly using the dataset documentation.
