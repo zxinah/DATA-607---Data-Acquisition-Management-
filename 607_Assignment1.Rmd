@@ -9,10 +9,57 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Overview
+# Overview
 
 This analysis uses the Student Performance dataset from the UCI Machine Learning Repository, which contains information about students’ academic performance as well as demographic, social, and school-related factors. I chose this dataset because I am interested in exploring how different aspects of a student’s life may relate to their academic performance. For this assignment, I will focus on creating a smaller and more understandable dataset containing variables that may be useful for examining student performance.The original dataset is available through the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/320/student+performance) 
 
-#Approach 
+# Approach 
 
 I plan to load the Student Performance data set into R and examine its structure and variables. I will select a subset of variables that may be useful for understanding student academic performance, including the final grade as the target variable. I will then rename unclear or abbreviated columns and transform coded values where necessary so that the resulting data frame is easier to understand and use for future analysis. One challenge I anticipate is determining which variables are most relevant to include while making sure that any coded values are interpreted correctly using the dataset documentation.
+
+```{r}
+# Load the Data
+student_data <- read.csv(
+  "https://raw.githubusercontent.com/zxinah/DATA-607---Data-Acquisition-Management-/main/student-por.csv",
+  sep = ";"
+)
+#rename some columns 
+student_subset <- student_data[, c(
+  "sex",
+  "age",
+  "studytime",
+  "failures",
+  "internet",
+  "absences",
+  "G1",
+  "G2",
+  "G3"
+)]
+
+names(student_subset) <- c(
+  "sex",
+  "age",
+  "studytime",
+  "failed_classes",
+  "internet",
+  "absences",
+  "first_period_grade",
+  "second_period_grade",
+  "final_grade"
+)
+#clarify studyset 
+student_subset$studytime <- factor(
+  student_subset$studytime,
+  levels = c(1, 2, 3, 4),
+  labels = c("<2 hours", "2-5 hours", "5-10 hours", ">10 hours")
+)
+
+head(student_subset)
+```
+# Conclusions
+
+The resulting data frame contains a smaller subset of variables from the original Student Performance dataset, focusing on student characteristics and academic factors that I thought may be useful for examining final grades. The final grade serves as the primary outcome variable, while variables such as study time, previous class failures, absences, internet access, and earlier grades provide potential factors for comparison.
+
+# Recommendations
+
+Future analysis could explore which of these variables have the strongest relationship with final grades. Additional variables from the original dataset could also be analyzed to determine how factors such as demographic, family, or social factors impact student academic performance.
