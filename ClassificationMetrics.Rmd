@@ -1,0 +1,9 @@
+---
+title: "ClassificationMetrics"
+output: html_document
+---
+
+# Approach
+
+For this assignment, I will analyze the performance of a binary classification model using the provided penguin prediction data. I will first examine the distribution of the actual classes and calculate the null error rate to establish a baseline for evaluating the model.I will then use the predicted probabilities to classify observations at three different probability thresholds which are 0.2, 0.5, and 0.8. For each threshold, I will create a confusion matrix showing the number of true positives, false positives, true negatives, and false negatives.
+Using the results from each confusion matrix, I will calculate accuracy, precision, recall, and F1 score and organize these metrics into a table so the effect of changing the classification threshold can be compared. Finally, I will discuss real world situations where a lower threshold of 0.2 or a higher threshold of 0.8 may be preferable based on the consequences of false positives and false negatives.

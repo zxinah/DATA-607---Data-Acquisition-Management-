@@ -1,0 +1,12 @@
+---
+title: "SQL and R"
+author: "Zaina Hassan"
+output:
+  pdf_document: default
+  html_document: default
+---
+# Approach
+
+For this assignment, I will collect movie ratings from five people for six selected movies. Each person will rate the movies they have seen on a scale from 1 to 5. If a participant has not seen a movie, the rating will be treated as missing rather than assigning an arbitrary value.
+I will store the collected data in a PostgreSQL database using three related tables: one for users, one for movies, and one for ratings. After creating and populating the database, I will use SQL queries to join the tables and retrieve the movie rating data. I will then connect the PostgreSQL database to R and load the query results into a dataframe. In R, I will inspect and clean the data, address any missing ratings, and use `dplyr` to calculate simple summaries such as the number of ratings and average rating for each movie.
+
