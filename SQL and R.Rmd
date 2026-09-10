@@ -10,3 +10,164 @@ output:
 For this assignment, I will collect movie ratings from five people for six selected movies. Each person will rate the movies they have seen on a scale from 1 to 5. If a participant has not seen a movie, the rating will be treated as missing rather than assigning an arbitrary value.
 I will store the collected data in a PostgreSQL database using three related tables: one for users, one for movies, and one for ratings. After creating and populating the database, I will use SQL queries to join the tables and retrieve the movie rating data. I will then connect the PostgreSQL database to R and load the query results into a dataframe. In R, I will inspect and clean the data, address any missing ratings, and use `dplyr` to calculate simple summaries such as the number of ratings and average rating for each movie.
 
+# Create Database Tables
+
+The movie rating data was stored in a PostgreSQL database using three related tables: users, movies, and ratings. The following SQL code was used to create the tables.
+
+```{sql, eval=FALSE}
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(50) 
+);
+
+CREATE TABLE movies (
+    movie_id SERIAL PRIMARY KEY,
+    title VARCHAR(100) 
+);
+
+CREATE TABLE ratings (
+    user_id INTEGER REFERENCES users(user_id),
+    movie_id INTEGER REFERENCES movies(movie_id),
+    rating INTEGER CHECK (rating BETWEEN 1 AND 5),
+    PRIMARY KEY (user_id, movie_id)
+);
+```
+
+# Populate Tables
+
+The following SQL code was used to create the users and movies tables.
+
+```{sql, eval=FALSE}
+INSERT INTO users (name)
+VALUES
+    ('Person 1'),
+    ('Person 2'),
+    ('Person 3'),
+    ('Person 4'),
+    ('Person 5');
+
+INSERT INTO movies (title)
+VALUES
+    ('Barbie'),
+    ('Oppenheimer'),
+    ('Inside Out 2'),
+    ('Wicked'),
+    ('Spiderman: Brand New Day'),
+    ('Insidious: Out of the Further');
+```
+
+#Insert Rating Values
+I collected and organized the movie ratings in Google Sheets, leaving cells blank when a participant had not seen or rated a movie. I then transferred the data into PostgreSQL using three related tables for users, movies, and ratings. Each available rating was inserted into the ratings table using the corresponding user and movie IDs. Missing ratings were not inserted into the ratings table.
+
+```{sql, eval=FALSE}
+INSERT INTO ratings (user_id, movie_id, rating)
+VALUES
+    (1, 1, 4),
+    (1, 2, 2),
+    (1, 3, 3),
+    (1, 4, 5),
+    (1, 5, 4),
+    (1, 6, 1),
+
+    (2, 1, 4),
+    (2, 2, 4),
+    (2, 4, 4),
+    (2, 5, 2),
+
+    (3, 1, 1),
+    (3, 2, 5),
+    (3, 3, 2),
+    (3, 5, 4),
+    (3, 6, 4),
+
+    (4, 1, 5),
+    (4, 3, 5),
+    (4, 4, 5),
+    (4, 5, 4),
+    (4, 6, 5),
+
+    (5, 1, 3),
+    (5, 2, 3),
+    (5, 3, 2),
+    (5, 4, 2),
+    (5, 5, 3),
+    (5, 6, 5);
+```
+# Query Movie Ratings
+
+The three tables were then joined using the user and movie IDs to produce a readable dataset containing each participant, movie, and corresponding rating.
+
+```{sql, eval=FALSE}
+SELECT
+    users.name,
+    movies.title,
+    ratings.rating
+FROM ratings
+JOIN users
+    ON ratings.user_id = users.user_id
+JOIN movies
+    ON ratings.movie_id = movies.movie_id;
+```
+# Load SQL Data into R
+
+The PostgreSQL database was connected directly to R using the `DBI` and `RPostgres` packages.
+
+```{r setup, include=FALSE}
+library(DBI)
+library(RPostgres)
+library(dplyr)
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "MovieRatings",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = rstudioapi::askForPassword("PostgreSQL password")
+)
+```
+
+```{r}
+movie_ratings <- dbGetQuery(con, "
+  SELECT
+    users.name,
+    movies.title,
+    ratings.rating
+  FROM users
+  CROSS JOIN movies
+  LEFT JOIN ratings
+    ON users.user_id = ratings.user_id
+    AND movies.movie_id = ratings.movie_id
+")
+
+movie_ratings
+```
+
+# Data Analysis
+
+First, I inspected the dataframe and checked for missing ratings.There are four missing ratings in the dataset. These missing values represent movies that participants did not rate. Rather than replacing the missing values with an artificial rating, I will exclude them when calculating summary statistics. This prevents unrated movies from affecting the average ratings.
+
+```{r}
+head(movie_ratings)
+str(movie_ratings)
+
+sum(is.na(movie_ratings$rating))
+```
+#Movies Summary
+```{r}
+movie_summary <- movie_ratings %>%
+  group_by(title) %>%
+  summarise(
+    number_of_ratings = sum(!is.na(rating)),
+    average_rating = mean(rating, na.rm = TRUE)
+  ) %>%
+  arrange(desc(average_rating))
+
+movie_summary
+```
+
+The results show that Wicked had the highest average rating at 4.00, while Inside Out 2 had the lowest average rating at 3.00. Barbie and Spiderman: Brand New Day received ratings from all five participants, while the remaining movies each received four ratings. Missing ratings were excluded from the calculation of the averages.
+
+```{r}
+dbDisconnect(con)
+```
+

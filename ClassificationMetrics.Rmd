@@ -1,9 +1,159 @@
 ---
 title: "ClassificationMetrics"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 # Approach
 
 For this assignment, I will analyze the performance of a binary classification model using the provided penguin prediction data. I will first examine the distribution of the actual classes and calculate the null error rate to establish a baseline for evaluating the model.I will then use the predicted probabilities to classify observations at three different probability thresholds which are 0.2, 0.5, and 0.8. For each threshold, I will create a confusion matrix showing the number of true positives, false positives, true negatives, and false negatives.
 Using the results from each confusion matrix, I will calculate accuracy, precision, recall, and F1 score and organize these metrics into a table so the effect of changing the classification threshold can be compared. Finally, I will discuss real world situations where a lower threshold of 0.2 or a higher threshold of 0.8 may be preferable based on the consequences of false positives and false negatives.
+
+# Load and Analyze the Data
+
+The provided penguin prediction dataset was loaded into R and inspected before evaluating the classification model.
+
+```{r}
+library(tidyverse)
+
+penguins <- read.csv("penguin_predictions.csv")
+head(penguins)
+```
+#Calculate Null Error Rate
+```{r}
+null_error_rate <- min(table(penguins$sex)) / nrow(penguins)
+null_error_rate
+```
+The null error rate is approximately 41.94%. Since male is the majority class, a model that always predicted male would incorrectly classify the 39 female observations. This provides a baseline for evaluating the classification model because a useful model should perform better than simply predicting the majority class
+
+#Class Distribution Plot
+```{r}
+ggplot(penguins, aes(x = sex)) +
+  geom_bar() +
+  labs(
+    title = "Distribution of Actual Penguin Sex",
+    x = "Sex",
+    y = "Count"
+  )
+```
+#Confusion Matrix and Table at 0.2 
+```{r}
+penguins <- penguins %>%
+  mutate(
+    actual = ifelse(sex == "female", 1, 0),
+    pred_02 = ifelse(.pred_female > 0.2, 1, 0)
+  )
+
+table(
+  Actual = penguins$actual,
+  Predicted = penguins$pred_02
+)
+```
+#Confusion Matrix and Table at 0.5
+```{r}
+penguins <- penguins %>%
+  mutate(
+    pred_05 = ifelse(.pred_female > 0.5, 1, 0)
+  )
+
+table(
+  Actual = penguins$actual,
+  Predicted = penguins$pred_05
+)
+```
+#Confusion Matrix and Table at 0.8
+```{r}
+penguins <- penguins %>%
+  mutate(
+    pred_08 = ifelse(.pred_female > 0.8, 1, 0)
+  )
+
+table(
+  Actual = penguins$actual,
+  Predicted = penguins$pred_08
+)
+```
+
+#Calculating Performance Metrics 
+##0.2
+```{r}
+# Threshold = 0.2
+TP <- 37
+TN <- 48
+FP <- 6
+FN <- 2
+
+accuracy_02 <- (TP + TN) / (TP + TN + FP + FN)
+precision_02 <- TP / (TP + FP)
+recall_02 <- TP / (TP + FN)
+f1_02 <- 2 * (precision_02 * recall_02) / 
+  (precision_02 + recall_02)
+
+c(
+  accuracy = accuracy_02,
+  precision = precision_02,
+  recall = recall_02,
+  f1 = f1_02
+)
+```
+##0.5
+```{r}
+# Threshold = 0.5
+TP <- 36
+TN <- 51
+FP <- 3
+FN <- 3
+
+accuracy_05 <- (TP + TN) / (TP + TN + FP + FN)
+precision_05 <- TP / (TP + FP)
+recall_05 <- TP / (TP + FN)
+f1_05 <- 2 * (precision_05 * recall_05) / 
+  (precision_05 + recall_05)
+
+c(
+  accuracy = accuracy_05,
+  precision = precision_05,
+  recall = recall_05,
+  f1 = f1_05
+)
+```
+##0.8
+```{r}
+# Threshold = 0.8
+TP <- 36
+TN <- 52
+FP <- 2
+FN <- 3
+
+accuracy_08 <- (TP + TN) / (TP + TN + FP + FN)
+precision_08 <- TP / (TP + FP)
+recall_08 <- TP / (TP + FN)
+f1_08 <- 2 * (precision_08 * recall_08) / 
+  (precision_08 + recall_08)
+
+c(
+  accuracy = accuracy_08,
+  precision = precision_08,
+  recall = recall_08,
+  f1 = f1_08
+)
+```
+
+#Comparison Table 
+```{r}
+metrics_table <- data.frame(
+  Threshold = c(0.2, 0.5, 0.8),
+  Accuracy = c(accuracy_02, accuracy_05, accuracy_08),
+  Precision = c(precision_02, precision_05, precision_08),
+  Recall = c(recall_02, recall_05, recall_08),
+  F1 = c(f1_02, f1_05, f1_08)
+)
+
+metrics_table
+```
+# Threshold Scenarios
+
+A threshold such as 0.2 can be useful in a medical scenario where the goal is to identify as many people who may have a disease as possible. With a lower threshold, more people would be classified as positive which reduces the chance of missing someone who actually has the disease. In this situation, false positives may be more acceptable than false negatives because additional testing could be used to confirm the diagnosis, better to be safe than sorry in a scenario like this. 
+
+A higher threshold such as 0.8 is be more appropriate for a model that is used to identify job applicants who meet the qualifications for a position. A higher threshold would require the model to be more confident before classifying an applicant as qualified. This could reduce false positives and prevent applicants who do not meet the necessary qualifications from being incorrectly recommended for the next stage of the hiring process, saving both the company and applicant time.
