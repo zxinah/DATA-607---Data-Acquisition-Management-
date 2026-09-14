@@ -1,0 +1,14 @@
+---
+title: "Global Baseline Estimate"
+author: |
+  Zaina Hassan  
+  [GitHub Repository](https://github.com/zxinah/DATA-607---Data-Acquisition-Management-)
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Approach 
+For this assignment, my goal is to clean and organize the existing ratings first, calculate the global, user, and movie averages in R, and then use those values to estimate missing ratings and generate a movie recommendation using the Global Baseline Estimate algorithm in R. I will first import the ratings data and make sure the rating columns are stored as numeric values, while keeping missing ratings as N/A rather than treating them as zeros. I will then calculate the overall average rating across all users and movies. Next, I will calculate each user's average rating and compare it to the overall average to determine whether that user generally rates movies higher or lower than average. I will do the same for each movie by calculating its average rating and comparing it to the overall average. The Global Baseline Estimate will then combine the overall mean, the user's rating tendency, and the movie's rating tendency to predict how a user may rate a movie they have not already rated. These predicted ratings can then be compared to determine which unrated movie would be the best recommendation.
+
+One challenge I anticipate is the missing data in the survey. Not every person rated every movie, so these missing values need to be excluded from the average calculations rather than interpreted as ratings of zero. Another challenge is the relatively small dataset. Since there are only a few users and movies, one unusually high or low rating could have a noticeable effect on the averages and predictions. Some movies also have fewer ratings than others, meaning their averages may be based on less information and may therefore be less reliable.
