@@ -1,0 +1,16 @@
+---
+title: "Window Functions"
+author: |
+  Zaina Hassan  
+  [GitHub Repository](https://github.com/zxinah/DATA-607---Data-Acquisition-Management-)
+  [RPubs Page](https://rpubs.com/zainah/1458949)
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Approach
+
+For this assignment, I will use historical daily stock price data for three companies which I chose to be Tesla (TSLA), Google/Alphabet (GOOGL), and Amazon (AMZN). I will obtain the data from Yahoo Finance and use stock prices beginning on January 1, 2022. The historical data includes information such as the date, opening price, closing price, daily high and low prices, adjusted closing price, and trading volume. I will mainly focus on the date and closing price for each company. After combining the three datasets, I will organize the observations by company and date. Using window functions in R with dplyr, I will calculate the year-to-date average closing price for each stock. This will represent the average closing price from the beginning of each year through the current date. I will also calculate a six day moving average for each stock, using the current day's closing price and the previous five trading days. The calculations will be grouped by stock symbol so that Tesla, Google, and Amazon are calculated separately. The final dataset will show the daily closing price, year-to-date average, and six-day moving average for each of the three stocks.
+
+One challenge I anticipate is making sure that the three datasets have the same structure before combining them. I will also need to make sure the dates are properly formatted and sorted in chronological order before calculating the moving averages. Another challenge will be handling the beginning of each stock's time series, since there will not initially be six trading days available to calculate a complete six-day moving average. I will need to decide how to handle these initial values, such as leaving them as NA until six observations are available.
