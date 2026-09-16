@@ -3,12 +3,108 @@ title: "Global Baseline Estimate"
 author: |
   Zaina Hassan  
   [GitHub Repository](https://github.com/zxinah/DATA-607---Data-Acquisition-Management-)
+  [RPubs Page](https://rpubs.com/zainah/1458946)
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 # Approach 
 For this assignment, my goal is to clean and organize the existing ratings first, calculate the global, user, and movie averages in R, and then use those values to estimate missing ratings and generate a movie recommendation using the Global Baseline Estimate algorithm in R. I will first import the ratings data and make sure the rating columns are stored as numeric values, while keeping missing ratings as N/A rather than treating them as zeros. I will then calculate the overall average rating across all users and movies. Next, I will calculate each user's average rating and compare it to the overall average to determine whether that user generally rates movies higher or lower than average. I will do the same for each movie by calculating its average rating and comparing it to the overall average. The Global Baseline Estimate will then combine the overall mean, the user's rating tendency, and the movie's rating tendency to predict how a user may rate a movie they have not already rated. These predicted ratings can then be compared to determine which unrated movie would be the best recommendation.
 
 One challenge I anticipate is the missing data in the survey. Not every person rated every movie, so these missing values need to be excluded from the average calculations rather than interpreted as ratings of zero. Another challenge is the relatively small dataset. Since there are only a few users and movies, one unusually high or low rating could have a noticeable effect on the averages and predictions. Some movies also have fewer ratings than others, meaning their averages may be based on less information and may therefore be less reliable.
+
+# Code Base
+## Populate Ratings Data in R
+```{r}
+library(dplyr)
+
+ratings <- data.frame(
+  person = c("Person 1", "Person 2", "Person 3", "Person 4", "Person 5"),
+  Barbie = c(4, 4, 1, 5, 3),
+  Oppenheimer = c(2, 4, 5, NA, 3),
+  Inside_Out_2 = c(3, NA, 2, 5, 2),
+  Wicked = c(5, 4, NA, 5, 2),
+  Spiderman = c(4, 2, 4, 4, 3),
+  Insidious = c(1, NA, 4, 5, 5)
+)
+
+ratings
+```
+## Calculate Global Mean 
+```{r}
+global_mean <- mean(as.matrix(ratings[, -1]), na.rm = TRUE)
+global_mean
+```
+## Calculate Movie Averages 
+```{r}
+movie_means <- colMeans(ratings[, -1], na.rm = TRUE)
+movie_means
+```
+## Calculate Movie Bias 
+```{r}
+movie_bias <- movie_means - global_mean
+movie_bias
+```
+## Calculate average rating for each person
+
+```{r}
+user_means <- rowMeans(ratings[, -1], na.rm = TRUE)
+user_means
+```
+## Calculate user bias
+
+```{r}
+user_bias <- user_means - global_mean
+user_bias
+```
+## Predict missing ratings using Global Baseline Estimate
+```{r}
+person2_insideout <- global_mean + user_bias[2] + movie_bias["Inside_Out_2"]
+
+person2_insidious <- global_mean + user_bias[2] + movie_bias["Insidious"]
+
+person3_wicked <- global_mean + user_bias[3] + movie_bias["Wicked"]
+
+person4_oppenheimer <- global_mean + user_bias[4] + movie_bias["Oppenheimer"]
+
+person2_insideout
+person2_insidious
+person3_wicked
+person4_oppenheimer
+```
+## Create table of predicted ratings
+```{r}
+predictions <- data.frame(
+  person = c("Person 2", "Person 2", "Person 3", "Person 4"),
+  movie = c("Inside Out 2", "Insidious", "Wicked", "Oppenheimer"),
+  predicted_rating = c(
+    unname(person2_insideout),
+    unname(person2_insidious),
+    unname(person3_wicked),
+    unname(person4_oppenheimer)
+  )
+)
+
+predictions
+```
+## Select the highest predicted rating for each person
+
+```{r}
+recommendations <- predictions %>%
+  group_by(person) %>%
+  slice_max(predicted_rating, n = 1) %>%
+  ungroup()
+
+recommendations
+```
+
+## Results and Interpretation
+
+The Global Baseline Estimate predicted ratings for the movies that each person had not previously rated. For Person 2, the predicted ratings were 3.00 for Inside Out 2 and 3.75 for Insidious, making Insidious the recommendation. Wicked was recommended to Person 3 with a predicted rating of 3.70, and Oppenheimer was recommended to Person 4 with a predicted rating of 4.80.
+
+Persons 1 and 5 did not receive recommendations because they had already rated every movie in the dataset. Overall, the Global Baseline Estimate provided recommendations by considering the overall average rating, each user's general rating tendency, and each movie's rating tendency.
+
+One challenge with this dataset is its small size. With only five people and six movies, individual ratings can have a large effect on the user averages, movie averages, and resulting predictions. Some movies also have fewer ratings than others, so their averages may be less representative.
+
+The Global Baseline Estimate is relatively simple. It considers the overall average along with user and movie rating tendencies, but it does not account for factors such as movie genre or similarities in users' preferences. Because of this, the recommendations should be interpreted as estimates based only on the available ratings.
