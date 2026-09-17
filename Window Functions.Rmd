@@ -14,3 +14,140 @@ output:
 For this assignment, I will use historical daily stock price data for three companies which I chose to be Tesla (TSLA), Google/Alphabet (GOOGL), and Amazon (AMZN). I will obtain the data from Yahoo Finance and use stock prices beginning on January 1, 2022. The historical data includes information such as the date, opening price, closing price, daily high and low prices, adjusted closing price, and trading volume. I will mainly focus on the date and closing price for each company. After combining the three datasets, I will organize the observations by company and date. Using window functions in R with dplyr, I will calculate the year-to-date average closing price for each stock. This will represent the average closing price from the beginning of each year through the current date. I will also calculate a six day moving average for each stock, using the current day's closing price and the previous five trading days. The calculations will be grouped by stock symbol so that Tesla, Google, and Amazon are calculated separately. The final dataset will show the daily closing price, year-to-date average, and six-day moving average for each of the three stocks.
 
 One challenge I anticipate is making sure that the three datasets have the same structure before combining them. I will also need to make sure the dates are properly formatted and sorted in chronological order before calculating the moving averages. Another challenge will be handling the beginning of each stock's time series, since there will not initially be six trading days available to calculate a complete six-day moving average. I will need to decide how to handle these initial values, such as leaving them as NA until six observations are available.
+
+#Code Base 
+##Download Data
+```{r}
+#install.packages("quantmod")
+library(quantmod)
+library(quantmod)
+library(dplyr)
+library(zoo)
+library(ggplot2)
+```
+
+##Load Stock Data 
+```{r}
+stocks <- c("TSLA", "GOOGL", "AMZN")
+
+getSymbols(
+  stocks,
+  src = "yahoo",
+  from = "2022-01-01",
+  to = "2026-09-17"
+)
+```
+## Create a simple dataframe with only the information wanted.
+
+```{r}
+tesla <- data.frame(
+  date = index(TSLA),
+  close = as.numeric(Cl(TSLA)),
+  stock = "TSLA"
+)
+
+google <- data.frame(
+  date = index(GOOGL),
+  close = as.numeric(Cl(GOOGL)),
+  stock = "GOOGL"
+)
+
+amazon <- data.frame(
+  date = index(AMZN),
+  close = as.numeric(Cl(AMZN)),
+  stock = "AMZN"
+)
+```
+#Combine all values into one dataset
+```{r}
+stock_data <- bind_rows(tesla, google, amazon)
+
+stock_data <- stock_data %>%
+  arrange(stock, date)
+
+head(stock_data)
+```
+#Calculate YTD average
+```{r}
+stock_data <- stock_data %>%
+  mutate(year = format(date, "%Y")) %>%
+  group_by(stock, year) %>%
+  mutate(ytd_average = cummean(close)) %>%
+  ungroup()
+
+head(stock_data)
+```
+#Install Zoo Package 
+```{r}
+#install.packages("zoo")
+```
+## Calculate Six-Day Moving Average
+```{r}
+stock_data <- stock_data %>%
+  group_by(stock) %>%
+  arrange(date, .by_group = TRUE) %>%
+  mutate(
+    six_day_average = rollmean(
+      close,
+      k = 6,
+      fill = NA,
+      align = "right"
+    )
+  ) %>%
+  ungroup()
+
+head(stock_data, 10)
+```
+## Check all 3 Stocks 
+```{r}
+stock_data %>%
+  group_by(stock) %>%
+  slice_head(n = 8) %>%
+  ungroup()
+```
+## Create a Data Table 
+```{r}
+final_stock_data <- stock_data %>%
+  select(
+    Date = date,
+    Stock = stock,
+    Closing_Price = close,
+    YTD_Average = ytd_average,
+    Six_Day_Moving_Average = six_day_average
+  ) %>%
+  mutate(
+    Closing_Price = round(Closing_Price, 2),
+    YTD_Average = round(YTD_Average, 2),
+    Six_Day_Moving_Average = round(Six_Day_Moving_Average, 2)
+  )
+
+head(final_stock_data, 10)
+```
+## Closing Prices and Six-Day Moving Averages
+```{r}
+ggplot(final_stock_data, 
+       aes(x = Date, y = Closing_Price, color = Stock)) +
+  geom_line() +
+  labs(
+    title = "Daily Closing Prices",
+    x = "Date",
+    y = "Closing Price ($)",
+    color = "Stock"
+  ) +
+  theme_minimal()
+```
+## Daily Closing Prices 
+```{r, warning=FALSE}
+ggplot(final_stock_data, aes(x = Date)) +
+  geom_line(aes(y = Closing_Price), alpha = 0.5) +
+  geom_line(aes(y = Six_Day_Moving_Average)) +
+  facet_wrap(~ Stock, scales = "free_y") +
+  labs(
+    title = "Closing Price and Six-Day Moving Average",
+    x = "Date",
+    y = "Price ($)"
+  ) +
+  theme_minimal()
+
+```
+
