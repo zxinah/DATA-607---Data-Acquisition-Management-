@@ -1,0 +1,15 @@
+---
+title: "Project1"
+author: |
+  Zaina Hassan  
+  [GitHub Repository](https://github.com/zxinah/DATA-607---Data-Acquisition-Management-)
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Approach
+
+For this project, I will use R to clean and organize data from a text file containing chess tournament results. The goal is to create a structured dataset containing each player's name, state, total points, pre-tournament rating, and the average pre-tournament rating of their opponents.
+I will first import the tournament text file into R and identify the lines containing player information. I will then extract the relevant player information and the opponent numbers listed for each round. The opponent numbers will be matched to the corresponding players so that their pre-tournament ratings can be identified. I will calculate the average opponent pre-rating for each player and organize the results into a final data frame. Finally, I will export the completed data frame as a CSV file.
+One anticipated complication is that the tournament data is stored in a semi-structured text format rather than a traditional table, so the player information will need to be extracted from different lines and positions in the file. Some pre-tournament ratings also contain additional characters, such as provisional ratings like "1641P17", which will need to be cleaned to obtain the numeric rating. In addition, some rounds contain codes such as B, H, U, or X instead of an opponent number. These entries will need to be handled carefully so that only actual opponents are included when calculating the average opponent pre-rating. Finally, opponent numbers must be correctly matched back to each player's pre-tournament rating.
